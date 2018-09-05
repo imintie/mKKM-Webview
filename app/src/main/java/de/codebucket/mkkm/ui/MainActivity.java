@@ -1,23 +1,30 @@
 package de.codebucket.mkkm.ui;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import de.codebucket.mkkm.MobileKKM;
 import de.codebucket.mkkm.R;
+import de.codebucket.mkkm.webview.LocalStorageAdapter;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    public static final String TAG = "Main";
 
     private WebView mWebview;
 
@@ -41,21 +48,28 @@ public class MainActivity extends AppCompatActivity
         mWebview = (WebView) findViewById(R.id.webview);
         mWebview.setWebViewClient(new WebViewClient(){
             @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-
+                String js = "https://coverart.codebucket.de/debug.js";
                 String inject = "var fileref=document.createElement('script')\n" +
-                        "fileref.setAttribute('src', 'https://code.jquery.com/jquery-3.3.1.min.js')\n" +
+                        "fileref.setAttribute('src', '" + js + "')\n" +
+                        "fileref.setAttribute('type', 'text/javascript')\n" +
                         "document.getElementsByTagName('head')[0].appendChild(fileref)";
 
                 view.evaluateJavascript(inject, null);
-                view.evaluateJavascript("$('[ng-controller=NavbarCtrl]').remove()", null);
-                Toast.makeText(getApplicationContext(), "Done!", Toast.LENGTH_SHORT).show();
+                //view.evaluateJavascript("$('[ng-controller=NavbarCtrl]').remove()", null);
             }
         });
+
         mWebview.getSettings().setJavaScriptEnabled(true);
         mWebview.getSettings().setDomStorageEnabled(true);
-        mWebview.loadUrl("https://m.kkm.krakow.pl");
+        mWebview.loadUrl("https://coverart.codebucket.de/debug.html");
+        mWebview.addJavascriptInterface(new LocalStorageAdapter(this), "AndroidLocalStorage");
 
     }
 
